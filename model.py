@@ -1,7 +1,5 @@
 from typing import List
 from pytrends.request import TrendReq
-# Updated import for snscrape (modern API)
-from snscrape.modules.twitter import TwitterSearchScraper
 import requests
 from bs4 import BeautifulSoup
 from sentence_transformers import SentenceTransformer
@@ -19,7 +17,6 @@ def get_google_trend_score(keywords: List[str]) -> float:
         data = pytrends.interest_over_time()
         if data.empty:
             return 0.0
-        # Normalize (values range 0–100)
         return float(data[keywords].iloc[-1].mean() / 100)
     except Exception:
         return 0.0
@@ -27,15 +24,20 @@ def get_google_trend_score(keywords: List[str]) -> float:
 
 def get_twitter_trend_score(keywords: List[str]) -> float:
     """
-    Uses snscrape's TwitterSearchScraper to fetch recent tweets matching any keyword.
-    Normalizes count by a ceiling (100 tweets) to return a 0.0–1.0 score.
+    Scrapes Twitter's trending topics page and returns a normalized
+    count of how many trending hashtags match the provided keywords.
     """
     try:
-        query = " OR ".join(f"#{kw}" for kw in keywords)
-        # Fetch up to 100 recent tweets
-        tweets = list(TwitterSearchScraper(query).get_items())[:100]
-        count = len(tweets)
-        return min(count / 100, 1.0)
+        url = "https://twitter.com/explore/tabs/trending"
+        resp = requests.get(url)
+        soup = BeautifulSoup(resp.text, "html.parser")
+        hashtags = [tag.get_text().lstrip("#") for tag in soup.find_all("span")]
+        matches = sum(
+            1 for kw in keywords
+            if any(kw.lower() in h.lower() for h in hashtags)
+        )
+        max_count = len(hashtags) or 1
+        return matches / max_count
     except Exception:
         return 0.0
 
@@ -48,30 +50,19 @@ def get_youtube_trending_similarity(keywords: List[str]) -> float:
     try:
         resp = requests.get("https://www.youtube.com/feed/trending")
         soup = BeautifulSoup(resp.text, "html.parser")
-        titles = [
-            t.get('title')
-            for t in soup.select('a#video-title')
-            if t.get('title')
-        ]
-
-        # Load sentence-transformer model once per call
+        titles = [t.get('title') for t in soup.select('a#video-title') if t.get('title')]
         model = SentenceTransformer('all-MiniLM-L6-v2')
         emb = model.encode(" ".join(keywords))
         sims = [
-            cosine_similarity([emb], [model.encode(title)])[0][0]
-            for title in titles
+            cosine_similarity([emb], [model.encode(t)])[0][0]
+            for t in titles
         ]
         return max(sims) if sims else 0.0
     except Exception:
         return 0.0
 
 
-def calculate_trending_score(
-    keywords: List[str],
-    w1: float = 0.4,
-    w2: float = 0.3,
-    w3: float = 0.3
-) -> float:
+def calculate_trending_score(keywords: List[str], w1: float = 0.4, w2: float = 0.3, w3: float = 0.3) -> float:
     """
     Combines Google Trends, Twitter, and YouTube similarity scores
     into a single trending_score.
