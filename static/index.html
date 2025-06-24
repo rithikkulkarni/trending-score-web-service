@@ -1,29 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trending Score Tester</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 2em auto;
+      padding: 0 1em;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1em;
+    }
+    input {
+      width: 100%;
+      padding: 0.5em;
+      margin: 0.5em 0;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 0.75em 1.5em;
+      font-size: 1em;
+      margin-top: 1em;
+    }
+    #result {
+      margin-top: 1.5em;
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-  <h1>Trending Score API</h1>
-  <form id="score-form">
-    <label>Title:<br><input type="text" id="title" size="50"></label><br><br>
-    <button type="submit">Get Score</button>
+  <h1>Trending Score Tester</h1>
+  <p>Enter your video title below to calculate its trending score based on social media signals.</p>
+
+  <form id="scoreForm">
+    <label for="title">Video Title:</label>
+    <input
+      type="text"
+      id="title"
+      name="title"
+      placeholder="e.g. Taylor Swift surprise album reaction"
+      required
+    />
+    <button type="submit">Get Trending Score</button>
   </form>
+
   <div id="result"></div>
 
   <script>
-    document.getElementById('score-form').addEventListener('submit', async e => {
+    const form      = document.getElementById('scoreForm');
+    const resultDiv = document.getElementById('result');
+
+    form.addEventListener('submit', async e => {
       e.preventDefault();
-      const title = document.getElementById('title').value;
-      const res = await fetch('https://trending-score-web-service.onrender.com/trending_score', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({title})
-      });
-      const data = await res.json();
-      document.getElementById('result').textContent = `Trending Score: ${data.trending_score}`;
+      resultDiv.textContent = 'Calculating…';
+
+      const title = document.getElementById('title').value.trim();
+      if (!title) {
+        resultDiv.textContent = 'Please enter a title.';
+        return;
+      }
+
+      try {
+        const response = await fetch('/trending_score', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ title })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.statusText}`);
+        }
+
+        const { trending_score } = await response.json();
+        resultDiv.textContent = `Trending Score: ${trending_score}`;
+      } catch (err) {
+        console.error(err);
+        resultDiv.textContent = `Error: ${err.message}`;
+      }
     });
   </script>
 </body>
