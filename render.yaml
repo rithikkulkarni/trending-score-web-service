@@ -1,0 +1,14 @@
+# Tell Render.com to treat this as a Python service
+services:
+  - type: web
+    name: trending-score-api
+    env: python            # explicitly specify Python
+    plan: free
+    rootDirectory: .       # repository root contains app.py, requirements.txt
+    buildCommand: |
+      echo "Root DIR: $(pwd)"
+      ls -R .
+      python3 -m pip install --upgrade pip setuptools wheel
+      python3 -m pip install --no-cache-dir -r requirements.txt
+    startCommand: python3 -m uvicorn app:app --host 0.0.0.0 --port $PORT
+    branch: main
