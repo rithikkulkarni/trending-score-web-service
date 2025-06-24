@@ -1,9 +1,14 @@
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Optional
 from model import calculate_trending_score
 
 app = FastAPI()
+
+# Mount the 'static' directory to serve index.html and assets
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class VideoMetadata(BaseModel):
     title: str
@@ -17,5 +22,6 @@ async def trending_score(video: VideoMetadata):
     return {"trending_score": score}
 
 @app.get("/")
-def root():
-    return {"message": "Go to /static/index.html"}
+async def root():
+    # Serve the static index.html at root
+    return FileResponse("static/index.html")
