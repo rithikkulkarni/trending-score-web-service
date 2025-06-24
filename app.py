@@ -20,23 +20,24 @@ app.add_middleware(
   allow_headers=["*"],
 )
 
-# Mount the 'static' directory to serve index.html and assets
-app.mount("/static", StaticFiles(directory="static"), name="static")
-# app.mount("/", StaticFiles(directory="static", html=True), name="static")
-
 class VideoMetadata(BaseModel):
     title: str
 
 @app.post("/trending_score")
 async def trending_score(video: VideoMetadata):
     try:
-        keywords = [video.title]
-        score = calculate_trending_score(keywords)
+        score = calculate_trending_score([video.title])
         return {"trending_score": score}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+# (Optional) health-check for Render
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 
-@app.get("/")
-async def root():
-    # Serve the static index.html at root
-    return FileResponse("static/index.html")
+app.mount(
+    "/",
+    StaticFiles(directory="static", html=True),
+    name="static",
+)
