@@ -21,8 +21,8 @@ app.add_middleware(
 )
 
 # Mount the 'static' directory to serve index.html and assets
-# app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+# app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 class VideoMetadata(BaseModel):
     title: str
