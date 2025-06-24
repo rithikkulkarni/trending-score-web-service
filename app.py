@@ -26,7 +26,6 @@ app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 class VideoMetadata(BaseModel):
     title: str
-    description: Optional[str] = ""
 
 @app.post("/trending_score")
 async def trending_score(video: VideoMetadata):
