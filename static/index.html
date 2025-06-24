@@ -17,7 +17,7 @@
     document.getElementById('score-form').addEventListener('submit', async e => {
       e.preventDefault();
       const title = document.getElementById('title').value;
-      const res = await fetch('https://trending-score-web-service.onrender.com//trending_score', {
+      const res = await fetch('https://trending-score-web-service.onrender.com/trending_score', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({title})
