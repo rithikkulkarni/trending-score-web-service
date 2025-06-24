@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trending Score Tester</title>
+</head>
+<body>
+  <h1>Trending Score API</h1>
+  <form id="score-form">
+    <label>Title:<br><input type="text" id="title" size="50"></label><br><br>
+    <label>Tags (comma-separated):<br><input type="text" id="tags" size="50"></label><br><br>
+    <button type="submit">Get Score</button>
+  </form>
+  <div id="result"></div>
+
+  <script>
+    document.getElementById('score-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const title = document.getElementById('title').value;
+      const tags = document.getElementById('tags').value.split(',').map(s=>s.trim());
+      const res = await fetch('/trending_score', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({title, tags})
+      });
+      const data = await res.json();
+      document.getElementById('result').textContent = `Trending Score: ${data.trending_score}`;
+    });
+  </script>
+</body>
+</html>
