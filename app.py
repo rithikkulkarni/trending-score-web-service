@@ -36,8 +36,4 @@ async def trending_score(video: VideoMetadata):
 async def health():
     return {"status": "ok"}
 
-app.mount(
-    "/",
-    StaticFiles(directory="static", html=True),
-    name="static",
-)
+app.mount("/static", StaticFiles(directory="static"), name="static")
