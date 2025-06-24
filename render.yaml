@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: trending-score-api
-    env: docker              # switch to Docker
-    plan: free
-    rootDirectory: .
-    buildCommand: docker build -t trending-score-api .
-    startCommand: docker run -p $PORT:8000 trending-score-api
-    branch: main
